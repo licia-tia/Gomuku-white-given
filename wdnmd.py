@@ -1,11 +1,15 @@
 import numpy as np
 import random
 import time
+import socket
 
 COLOR_BLACK = -1
 COLOR_WHITE = 1
 COLOR_NONE = 0
 random.seed(0)
+
+HOST = '10.20.46.59'
+PORT = 23333
 
 # 模式
 paterns = "11111", "011110", "011100", "001110", \
@@ -16,6 +20,7 @@ paterns = "11111", "011110", "011100", "001110", \
 # 模式相应的分数
 patern_scores = 50000, 4320, 720, 720, 720, 720, 720, 720, 720, 720, 720, 120, 120, 120, 20, 20
 
+flag = False
 
 class AI(object):
 
@@ -27,6 +32,7 @@ class AI(object):
         self.time_out = time_out
         # add decision into candidate_list
         self.candidate_list = []
+
 
     def eval_pos(self, chessboard, x, y):
         lines_mine = ['', '', '', '']
@@ -119,9 +125,31 @@ class AI(object):
 
         # The input is current chessboard
 
+    def gao(self, chessboard):
+        self.socket.sendall(str(chessboard).encode())
+        msg = self.socket.recv(1024)
+        res = msg.decode('utf-8')
+        xy = res.split(',')
+        self.candidate_list.append([int(x) for x in xy])
+        print(self.candidate_list)
+
     def go(self, chessboard):
         # clear candidate_list
         self.candidate_list.clear()
+
+        if self.color == COLOR_WHITE:
+            try:
+                self.socket = socket.socket()
+                self.socket.connect((HOST, PORT))
+                # jiba
+
+                self.gao(chessboard)
+                return
+
+                # eojiba
+            except Exception:
+                pass
+
 
         # My white giving show
 
