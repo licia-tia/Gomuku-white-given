@@ -7,6 +7,8 @@ COLOR_WHITE = 1
 COLOR_NONE = 0
 random.seed(0)
 
+GOOO=60
+
 # 模式
 paterns = "11111", "011110", "011100", "001110", \
           "011010", "010110", "11110", "01111", \
@@ -27,11 +29,13 @@ class AI(object):
         self.time_out = time_out
         # add decision into candidate_list
         self.candidate_list = []
+        self.empty_idx = np.where(np.zeros((chessboard_size, chessboard_size), dtype=np.int) == COLOR_NONE)
+        self.empty_idx = list(zip(self.empty_idx[0], self.empty_idx[1]))
 
     def eval_pos(self, chessboard, x, y):
         lines_mine = ['', '', '', '']
         lines_bad = ['', '', '', '']
-        for i in range(max(0, x - 4), min(self.chessboard_size - 1, x + 4)):
+        for i in range(max(0, x - 4), min(self.chessboard_size, x + 5)):
             if i == x:
                 lines_mine[0] += '1'
                 lines_bad[0] += '1'
@@ -46,7 +50,7 @@ class AI(object):
                     lines_mine[0] += '2'
                     lines_bad[0] += '1'
 
-        for i in range(max(0, y - 4), min(self.chessboard_size - 1, y + 4)):
+        for i in range(max(0, y - 4), min(self.chessboard_size, y + 5)):
             if i == y:
                 lines_mine[1] += '1'
                 lines_bad[1] += '1'
@@ -106,39 +110,70 @@ class AI(object):
         for i in lines_mine:
             for j in range(len(paterns)):
                 if paterns[j] in i:
-                    result = result + patern_scores[j] + 30
+                    result = result + patern_scores[j] + GOOO
                     break
 
         for i in lines_bad:
             for j in range(len(paterns)):
                 if paterns[j] in i:
-                    result = result + patern_scores[j] - 30
+                    result = result + patern_scores[j] - GOOO
                     break
 
         return result
 
         # The input is current chessboard
 
+    # def eval_all(self, chessboard):
+
+
     def go(self, chessboard):
+
+
+
         # clear candidate_list
         self.candidate_list.clear()
 
         # My white giving show
 
         idx = np.where(chessboard == COLOR_NONE)
-        idx = list(zip(idx[0], idx[1]))
-        # pos_idx = random.randint(0, len(idx) - 1)
-        # new_pos = idx[pos_idx]
 
-        max_score = 0
+        idx = list(zip(idx[0], idx[1]))
+
+        max_score = -1
         new_pos = [0, 0]
 
-        # for i in range(self.chessboard_size):
-        #     for j in range(self.chessboard_size):
+
+        # 获取新下的子
+        try:
+            new_chess = set(self.empty_idx).difference(set(idx))
+            if len(new_chess)!=0:
+                tmp = new_chess.pop()
+                a = tmp[0]
+                b = tmp[1]
+                pre_pos = []
+                for i in range(a - 1, a + 2):
+                    for j in range(b - 1, b + 2):
+                        try:
+                            if chessboard[i][j]==COLOR_NONE:
+                                pre_pos.append((i, j))
+
+                        except Exception:
+                            pass
+
+                for i, j in pre_pos:
+                    score = self.eval_pos(chessboard, i, j)
+                    if score > max_score:
+                        max_score = score
+                        new_pos[0] = i
+                        new_pos[1] = j
+
+        except Exception:
+            pass
+
 
         for i, j in idx:
             score = self.eval_pos(chessboard, i, j)
-            if score >= max_score:
+            if score > max_score:
                 max_score = score
                 new_pos[0] = i
                 new_pos[1] = j
@@ -150,3 +185,5 @@ class AI(object):
 
         assert chessboard[new_pos[0], new_pos[1]] == COLOR_NONE
         self.candidate_list.append(new_pos)
+
+        idx.remove((new_pos[0], new_pos[1]))
