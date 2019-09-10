@@ -7,16 +7,16 @@ COLOR_WHITE = 1
 COLOR_NONE = 0
 random.seed(0)
 
-GOOO=60
+GOOO = 35
 
 # 模式
-paterns = "11111", "011110", "011100", "001110", \
+PATERNS = "11111", "011110", "011100", "001110", \
           "011010", "010110", "11110", "01111", \
           "11011", "10111", "11101", "001100", \
           "001010", "010100", "000100", "001000"
 
 # 模式相应的分数
-patern_scores = 50000, 4320, 720, 720, 720, 720, 720, 720, 720, 720, 720, 120, 120, 120, 20, 20
+PATERN_SCORES = 50000, 4320, 720, 720, 720, 720, 720, 720, 720, 720, 720, 120, 120, 120, 20, 20
 
 
 class AI(object):
@@ -108,45 +108,38 @@ class AI(object):
         result = 0
 
         for i in lines_mine:
-            for j in range(len(paterns)):
-                if paterns[j] in i:
-                    result = result + patern_scores[j] + GOOO
+            for j in range(len(PATERNS)):
+                if PATERNS[j] in i:
+                    result = result + PATERN_SCORES[j] + GOOO
                     break
 
         for i in lines_bad:
-            for j in range(len(paterns)):
-                if paterns[j] in i:
-                    result = result + patern_scores[j] - GOOO
+            for j in range(len(PATERNS)):
+                if PATERNS[j] in i:
+                    result = result + PATERN_SCORES[j] - GOOO
                     break
 
         return result
 
         # The input is current chessboard
 
-    # def eval_all(self, chessboard):
-
+    def eval_map(self, chessboard):
+        pass
 
     def go(self, chessboard):
-
-
-
         # clear candidate_list
         self.candidate_list.clear()
 
         # My white giving show
-
         idx = np.where(chessboard == COLOR_NONE)
-
         idx = list(zip(idx[0], idx[1]))
-
         max_score = -1
         new_pos = [0, 0]
 
-
-        # 获取新下的子
+        # 获取新下的棋子
         try:
             new_chess = set(self.empty_idx).difference(set(idx))
-            if len(new_chess)!=0:
+            if len(new_chess) != 0:
                 tmp = new_chess.pop()
                 a = tmp[0]
                 b = tmp[1]
@@ -154,7 +147,7 @@ class AI(object):
                 for i in range(a - 1, a + 2):
                     for j in range(b - 1, b + 2):
                         try:
-                            if chessboard[i][j]==COLOR_NONE:
+                            if chessboard[i][j] == COLOR_NONE:
                                 pre_pos.append((i, j))
 
                         except Exception:
@@ -170,7 +163,6 @@ class AI(object):
         except Exception:
             pass
 
-
         for i, j in idx:
             score = self.eval_pos(chessboard, i, j)
             if score > max_score:
@@ -178,12 +170,12 @@ class AI(object):
                 new_pos[0] = i
                 new_pos[1] = j
 
-        # done
+        # 如果空盘，下中间
         if len(idx) == self.chessboard_size * self.chessboard_size:
             new_pos[0] = int(self.chessboard_size / 2)
             new_pos[1] = int(self.chessboard_size / 2)
 
         assert chessboard[new_pos[0], new_pos[1]] == COLOR_NONE
-        self.candidate_list.append(new_pos)
 
         idx.remove((new_pos[0], new_pos[1]))
+        self.candidate_list.append(new_pos)
