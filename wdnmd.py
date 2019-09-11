@@ -6,17 +6,18 @@ COLOR_BLACK = -1
 COLOR_WHITE = 1
 COLOR_NONE = 0
 random.seed(0)
-
-GOOO = 35
+debug = []
+ATK = 30
+DEPTH = 3
 
 # 模式
-PATERNS = "11111", "011110", "011100", "001110", \
-          "011010", "010110", "11110", "01111", \
-          "11011", "10111", "11101", "001100", \
-          "001010", "010100", "000100", "001000"
+PATTERNS = "11111", "011110", "011100", "001110", \
+           "011010", "010110", "11110", "01111", \
+           "11011", "10111", "11101", "001100", \
+           "001010", "010100", "000100", "001000"
 
 # 模式相应的分数
-PATERN_SCORES = 50000, 4320, 720, 720, 720, 720, 720, 720, 720, 720, 720, 120, 120, 120, 20, 20
+PATTERN_SCORES = 50000, 4320, 720, 720, 720, 720, 720, 720, 720, 720, 720, 120, 120, 120, 20, 20
 
 
 class AI(object):
@@ -32,7 +33,7 @@ class AI(object):
         self.empty_idx = np.where(np.zeros((chessboard_size, chessboard_size), dtype=np.int) == COLOR_NONE)
         self.empty_idx = list(zip(self.empty_idx[0], self.empty_idx[1]))
 
-    def eval_pos(self, chessboard, x, y):
+    def eval_pos(self, chessboard, x, y, role):
         lines_mine = ['', '', '', '']
         lines_bad = ['', '', '', '']
         for i in range(max(0, x - 4), min(self.chessboard_size, x + 5)):
@@ -40,7 +41,7 @@ class AI(object):
                 lines_mine[0] += '1'
                 lines_bad[0] += '1'
             else:
-                if chessboard[i][y] == self.color:
+                if chessboard[i][y] == role:
                     lines_mine[0] += '1'
                     lines_bad[0] += '2'
                 elif chessboard[i][y] == COLOR_NONE:
@@ -55,7 +56,7 @@ class AI(object):
                 lines_mine[1] += '1'
                 lines_bad[1] += '1'
             else:
-                if chessboard[x][i] == self.color:
+                if chessboard[x][i] == role:
                     lines_mine[1] += '1'
                     lines_bad[1] += '2'
                 elif chessboard[x][i] == COLOR_NONE:
@@ -73,7 +74,7 @@ class AI(object):
                 lines_mine[2] += '1'
                 lines_bad[2] += '1'
             else:
-                if chessboard[i][j] == self.color:
+                if chessboard[i][j] == role:
                     lines_mine[2] += '1'
                     lines_bad[2] += '2'
                 elif chessboard[i][j] == COLOR_NONE:
@@ -93,7 +94,7 @@ class AI(object):
                 lines_mine[3] += '1'
                 lines_bad[3] += '1'
             else:
-                if chessboard[i][j] == self.color:
+                if chessboard[i][j] == role:
                     lines_mine[3] += '1'
                     lines_bad[3] += '2'
                 elif chessboard[i][j] == COLOR_NONE:
@@ -108,34 +109,235 @@ class AI(object):
         result = 0
 
         for i in lines_mine:
-            for j in range(len(PATERNS)):
-                if PATERNS[j] in i:
-                    result = result + PATERN_SCORES[j] + GOOO
+            for j in range(len(PATTERNS)):
+                if PATTERNS[j] in i:
+                    result = result + PATTERN_SCORES[j] + ATK
                     break
 
         for i in lines_bad:
-            for j in range(len(PATERNS)):
-                if PATERNS[j] in i:
-                    result = result + PATERN_SCORES[j] - GOOO
+            for j in range(len(PATTERNS)):
+                if PATTERNS[j] in i:
+                    result = result + PATTERN_SCORES[j] - ATK
                     break
 
         return result
 
         # The input is current chessboard
 
-    def eval_map(self, chessboard):
-        pass
+    def eval_map(self, chessboard, role):
+        lines_mine = []
+        lines_bad = []
+        count = 0
 
-    def go(self, chessboard):
-        # clear candidate_list
-        self.candidate_list.clear()
+        for i in range(0, self.chessboard_size):
+            lines_mine.append('')
+            lines_bad.append('')
+            for j in range(0, self.chessboard_size):
+                if chessboard[i][j] == role:
+                    lines_mine[count] += '1'
+                    lines_bad[count] += '2'
+                elif chessboard[i][j] == COLOR_NONE:
+                    lines_mine[count] += '0'
+                    lines_bad[count] += '0'
+                else:
+                    lines_mine[count] += '2'
+                    lines_bad[count] += '1'
+            count = count + 1
 
-        # My white giving show
-        idx = np.where(chessboard == COLOR_NONE)
-        idx = list(zip(idx[0], idx[1]))
+        for i in range(0, self.chessboard_size):
+            lines_mine.append('')
+            lines_bad.append('')
+            for j in range(0, self.chessboard_size):
+                if chessboard[j][i] == role:
+                    lines_mine[count] += '1'
+                    lines_bad[count] += '2'
+                elif chessboard[j][i] == COLOR_NONE:
+                    lines_mine[count] += '0'
+                    lines_bad[count] += '0'
+                else:
+                    lines_mine[count] += '2'
+                    lines_bad[count] += '1'
+            count = count + 1
+
+        for i in range(self.chessboard_size):
+            res = [chessboard[i + k, 0 + k] for k in range(self.chessboard_size - i)]
+            lines_mine.append('')
+            lines_bad.append('')
+            for j in res:
+                if j == role:
+                    lines_mine[count] += '1'
+                    lines_bad[count] += '2'
+                elif j == COLOR_NONE:
+                    lines_mine[count] += '0'
+                    lines_bad[count] += '0'
+                else:
+                    lines_mine[count] += '2'
+                    lines_bad[count] += '1'
+            count = count + 1
+
+        for i in range(self.chessboard_size):
+            res = [chessboard[0 + k, i + k] for k in range(self.chessboard_size - i - 1)]
+            lines_mine.append('')
+            lines_bad.append('')
+            for j in res:
+                if j == role:
+                    lines_mine[count] += '1'
+                    lines_bad[count] += '2'
+                elif j == COLOR_NONE:
+                    lines_mine[count] += '0'
+                    lines_bad[count] += '0'
+                else:
+                    lines_mine[count] += '2'
+                    lines_bad[count] += '1'
+            count = count + 1
+
+        for i in range(self.chessboard_size):
+            res = [chessboard[i - k, 0 + k] for k in range(self.chessboard_size - i)]
+            lines_mine.append('')
+            lines_bad.append('')
+            for j in res:
+                if j == role:
+                    lines_mine[count] += '1'
+                    lines_bad[count] += '2'
+                elif j == COLOR_NONE:
+                    lines_mine[count] += '0'
+                    lines_bad[count] += '0'
+                else:
+                    lines_mine[count] += '2'
+                    lines_bad[count] += '1'
+            count = count + 1
+
+        for i in range(self.chessboard_size):
+            res = [chessboard[0 + k, i - k] for k in range(self.chessboard_size - i - 1)]
+            lines_mine.append('')
+            lines_bad.append('')
+            for j in res:
+                if j == role:
+                    lines_mine[count] += '1'
+                    lines_bad[count] += '2'
+                elif j == COLOR_NONE:
+                    lines_mine[count] += '0'
+                    lines_bad[count] += '0'
+                else:
+                    lines_mine[count] += '2'
+                    lines_bad[count] += '1'
+            count = count + 1
+
+        result = 0
+
+        for i in lines_mine:
+            for j in range(len(PATTERNS)):
+                if PATTERNS[j] in i:
+                    result = result + PATTERN_SCORES[j]
+
+        for i in lines_bad:
+            for j in range(len(PATTERNS)):
+                if PATTERNS[j] in i:
+                    result = result - PATTERN_SCORES[j]
+
+        return result
+
+    def minimax(self, chessboard, depth, idx):
+        if depth % 2 == 0:
+            role = -self.color
+        else:
+            role = self.color
+        if depth == DEPTH or depth == 0:
+            return self.eval_map(chessboard, role)
+
+
+        elif depth % 2 != 0:
+            score = -999999999999999
+            for i in range(len(idx)):
+                # ===============
+                near = []
+                for j in range(-1, 2):
+                    for k in range(-1, 2):
+                        try:
+                            near.append(chessboard[idx[i][0] + j][idx[i][1] + k])
+                        except Exception:
+                            pass
+
+                if not ((COLOR_WHITE in near) or (COLOR_BLACK in near)):
+                    idx[i] = (-1, -1)
+                    continue
+                # ============
+                if idx[i] == (-1, -1):
+                    continue
+                idx_tmp = idx.copy()
+                idx_tmp[i] = (-1, -1)
+                chessboard_tmp = np.copy(chessboard)
+                chessboard_tmp[idx[i][0]][idx[i][1]] = self.color
+                score = max(score, self.minimax(chessboard_tmp, depth + 1, idx_tmp))
+            return score
+        else:
+            score = 999999999999999
+            for i in range(len(idx)):
+
+                near = []
+                for j in range(-1, 2):
+                    for k in range(-1, 2):
+                        try:
+                            near.append(chessboard[idx[i][0] + j][idx[i][1] + k])
+                        except Exception:
+                            pass
+
+                if not ((COLOR_WHITE in near) or (COLOR_BLACK in near)):
+                    idx[i] = (-1, -1)
+                    continue
+                # ============
+
+                if idx[i] == (-1, -1):
+                    continue
+                idx_tmp = idx.copy()
+                idx_tmp[i] = (-1, -1)
+                chessboard_tmp = np.copy(chessboard)
+                chessboard_tmp[idx[i][0]][idx[i][1]] = self.color
+                score = min(score, self.minimax(chessboard_tmp, depth + 1, idx_tmp))
+            return score
+
+    def more_than_single(self, chessboard, idx):
         max_score = -1
         new_pos = [0, 0]
+        # 如果空盘，下中间
+        if len(idx) == self.chessboard_size * self.chessboard_size:
+            new_pos[0] = int(self.chessboard_size / 2)
+            new_pos[1] = int(self.chessboard_size / 2)
+        elif len(idx) == 1:
+            new_pos = idx[0]
+        else:
+            max_score = -9999999999999999999999
+            for i in range(len(idx)):
+                if idx[i] == (-1, -1):
+                    continue
 
+                near = []
+                for j in range(-1, 2):
+                    for k in range(-1, 2):
+                        try:
+                            near.append(chessboard[idx[i][0] + j][idx[i][1] + k])
+                        except Exception:
+                            pass
+
+                if (COLOR_WHITE in near) or (COLOR_BLACK in near):
+                    idx_tmp = idx.copy()
+                    idx_tmp[i] = (0, 0)
+                    chessboard_tmp = np.copy(chessboard)
+                    chessboard_tmp[idx[i][0]][idx[i][1]] = self.color
+                    score = self.minimax(chessboard_tmp, 2, idx_tmp)
+                    print(score, (idx[i]))
+                    if score > max_score:
+                        max_score = score
+                        new_pos = idx[i]
+                else:
+                    idx[i] = (-1, -1)
+
+        assert chessboard[new_pos[0], new_pos[1]] == COLOR_NONE
+        self.candidate_list.append(new_pos)
+
+    def single(self, chessboard, idx):
+        max_score = -1
+        new_pos = [0, 0]
         # 获取新下的棋子
         try:
             new_chess = set(self.empty_idx).difference(set(idx))
@@ -154,7 +356,7 @@ class AI(object):
                             pass
 
                 for i, j in pre_pos:
-                    score = self.eval_pos(chessboard, i, j)
+                    score = self.eval_pos(chessboard, i, j, self.color)
                     if score > max_score:
                         max_score = score
                         new_pos[0] = i
@@ -164,7 +366,7 @@ class AI(object):
             pass
 
         for i, j in idx:
-            score = self.eval_pos(chessboard, i, j)
+            score = self.eval_pos(chessboard, i, j, self.color)
             if score > max_score:
                 max_score = score
                 new_pos[0] = i
@@ -179,3 +381,13 @@ class AI(object):
 
         idx.remove((new_pos[0], new_pos[1]))
         self.candidate_list.append(new_pos)
+
+    def go(self, chessboard):
+        # clear candidate_list
+        self.candidate_list.clear()
+        idx = np.where(chessboard == COLOR_NONE)
+        idx = list(zip(idx[0], idx[1]))
+
+        # self.single(chessboard, idx)
+        self.more_than_single(chessboard, idx)
+        print(self.candidate_list)
