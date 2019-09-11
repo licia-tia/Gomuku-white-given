@@ -7,16 +7,16 @@ COLOR_WHITE = 1
 COLOR_NONE = 0
 random.seed(0)
 
-GOOO = 35
+ARG_1 = 30
 
 # 模式
-PATERNS = "11111", "011110", "011100", "001110", \
-          "011010", "010110", "11110", "01111", \
+PATTERNS = "11111", "011110", "011100", "001110", \
+           "011010", "010110", "11110", "01111", \
           "11011", "10111", "11101", "001100", \
           "001010", "010100", "000100", "001000"
 
 # 模式相应的分数
-PATERN_SCORES = 50000, 4320, 720, 720, 720, 720, 720, 720, 720, 720, 720, 120, 120, 120, 20, 20
+PATTERN_SCORES = 50000, 4320, 720, 720, 720, 720, 720, 720, 720, 720, 720, 120, 120, 120, 20, 20
 
 
 class AI(object):
@@ -108,23 +108,20 @@ class AI(object):
         result = 0
 
         for i in lines_mine:
-            for j in range(len(PATERNS)):
-                if PATERNS[j] in i:
-                    result = result + PATERN_SCORES[j] + GOOO
+            for j in range(len(PATTERNS)):
+                if PATTERNS[j] in i:
+                    result = result + PATTERN_SCORES[j] + ARG_1
                     break
 
         for i in lines_bad:
-            for j in range(len(PATERNS)):
-                if PATERNS[j] in i:
-                    result = result + PATERN_SCORES[j] - GOOO
+            for j in range(len(PATTERNS)):
+                if PATTERNS[j] in i:
+                    result = result + PATTERN_SCORES[j] - ARG_1
                     break
 
         return result
 
         # The input is current chessboard
-
-    def eval_map(self, chessboard):
-        pass
 
     def go(self, chessboard):
         # clear candidate_list
