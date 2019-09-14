@@ -12,21 +12,17 @@ chessboard[1:3, 11] = -1
 chessboard[3, 9:11] = -1
 chessboard[6, 13] = -1
 
-
-# print(np.diag(chessboard))
-
 print(chessboard)
-# print(chessboard.T[11])
 
 print()
 a = wdnmd.AI(15, -1, 5)
 start = time.time()
-# a.eval_pos(chessboard, 5, 5)
-# print(a.eval_pos(chessboard, 5, 5))
-# a.go(chessboard)
-# print(a.candidate_list)
-for p in range(100):
-    a.go(chessboard)
+# a.eval_pos(chessboard, 1, 9)
+# a.eval_pos(chessboard, 7, 9)
+a.go(chessboard)
+print(a.candidate_list)
+# for p in range(1000):
+#     a.go(chessboard)
 
 
 print(time.time()-start)
